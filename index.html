@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Consola DJ Jireh</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#00f2ff">
+<link rel="apple-touch-icon" href="./logo.png">
+<style>
+:root{--bg:#121212;--deck:#1e1e1e;--txt:#e0e0e0;--a:#00f2ff;--b:#ff9d00;--fader:#333;--voz:#b14bff;}
+*{box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--txt);margin:0;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px;user-select:none}
+h1{margin:8px 0;font-weight:300;letter-spacing:2px;text-transform:uppercase;font-size:1.4rem;text-align:center}
+h1 small{display:block;font-size:.7rem;color:#666;letter-spacing:1px}
+.topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:10px;width:100%;max-width:820px}
+.onair{display:flex;align-items:center;gap:8px;background:#222;border:1px solid #444;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:bold}
+.onair .dot{width:14px;height:14px;border-radius:50%;background:#555;transition:.2s}
+.onair.live{border-color:#ff3b3b;color:#ff5b5b}
+.onair.live .dot{background:#ff3b3b;box-shadow:0 0 12px #ff3b3b;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.urlbox{flex:1;min-width:160px;display:flex;gap:6px}
+.urlbox input{flex:1;background:#000;border:1px solid #333;color:#0f0;font-family:'Courier New',monospace;padding:8px;border-radius:6px;font-size:.8rem}
+.urlbox button{background:#28a745;border:none;color:#fff;border-radius:6px;padding:0 12px;cursor:pointer;font-weight:bold}
+.pipeline{width:100%;max-width:820px;background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:8px 12px;font-size:.72rem;color:#888;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:12px}
+.pipeline b{color:var(--a)}
+.pipeline span{color:#444}
+.console{display:flex;gap:12px;background:#000;padding:18px;border-radius:15px;box-shadow:0 10px 30px rgba(0,0,0,.8);border:1px solid #333;flex-wrap:wrap;justify-content:center;width:100%;max-width:820px}
+.deck{background:var(--deck);border-radius:10px;padding:14px;flex:1;min-width:240px;display:flex;flex-direction:column;gap:10px;border-top:4px solid #777}
+.deck.a{border-top-color:var(--a)}.deck.b{border-top-color:var(--b)}
+.deck-title{font-size:1.05em;font-weight:bold;text-align:center}
+.deck.a .deck-title{color:var(--a)}.deck.b .deck-title{color:var(--b)}
+.viz{width:100%;height:55px;background:#000;border-radius:6px;display:block}
+.file-wrap{position:relative;overflow:hidden;text-align:center}
+.file-wrap input[type=file]{font-size:100px;position:absolute;left:0;top:0;opacity:0;cursor:pointer;width:100%}
+.btn{background:#333;color:#fff;padding:10px;border:none;border-radius:5px;cursor:pointer;font-weight:bold;width:100%;text-align:center;font-size:.95rem}
+.btn:hover{background:#444}.btn.play{background:#28a745}.btn.play:hover{background:#218838}.btn.playing{background:#dc3545}
+.track-info{background:#000;color:#0f0;font-family:'Courier New',monospace;padding:8px;border-radius:5px;font-size:.8rem;height:34px;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;white-space:nowrap}
+.prog{width:100%;height:5px;background:#333;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;width:0;background:#fff}
+.deck.a .prog-fill{background:var(--a)}.deck.b .prog-fill{background:var(--b)}
+.grp{display:flex;flex-direction:column;gap:4px}.grp label{font-size:.75rem;color:#aaa}
+input[type=range]{-webkit-appearance:none;width:100%;background:transparent}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:18px;width:38px;border-radius:3px;background:#ccc;cursor:pointer;margin-top:-7px;box-shadow:0 2px 5px rgba(0,0,0,.5)}
+input[type=range]::-webkit-slider-runnable-track{width:100%;height:4px;background:var(--fader);border-radius:2px}
+.deck.a input[type=range]::-webkit-slider-thumb{background:var(--a)}
+.deck.b input[type=range]::-webkit-slider-thumb{background:var(--b)}
+.mixer{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:110px;padding:0 8px}
+.mixer label{font-weight:bold;letter-spacing:1px;font-size:.85rem;margin-bottom:6px}
+.cf-ticks{display:flex;justify-content:space-between;font-size:.7rem;color:#888;width:100%}
+#crossfader{width:100%;margin-top:6px}#crossfader::-webkit-slider-thumb{width:48px;background:#fff}
+.master-wave{width:100%;max-width:820px;height:60px;background:#000;border-radius:8px;margin-top:12px;border:1px solid #222}
+.legend{display:flex;gap:14px;justify-content:center;font-size:.7rem;color:#888;margin-top:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.recbar{display:flex;gap:10px;width:100%;max-width:820px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.recbar button{flex:1;min-width:140px;padding:12px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;color:#fff}
+.rec{background:#dc3545}.rec.on{background:#ff3b3b;animation:pulse 1s infinite}
+.dl{background:#007bff;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.dl.hidden{display:none}
+.badge{margin-top:14px;font-size:.75rem;color:#666;text-align:center}
+.badge a{color:var(--a);text-decoration:none}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;padding:20px;text-align:center}
+.overlay img{width:120px;height:120px;border-radius:50%;margin-bottom:16px;box-shadow:0 0 25px rgba(0,242,255,.4)}
+.overlay button{padding:14px 30px;font-size:1.05em;background:var(--a);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+.overlay p{color:#aaa;margin-top:12px;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay">
+  <img src="./logo.png" alt="Jireh" onerror="this.style.display='none'">
+  <h2 style="color:#fff;margin:0 0 16px">Consola DJ Jireh</h2>
+  <button onclick="initAudio()">▶ INICIIZAR AUDIO</button>
+  <p>Toca para habilitar el motor de audio y el visualizador</p>
+</div>
+
+<h1>🎛️ Consola DJ Jireh<small>Visualizador + Transmisión · Romanos 10:17</small></h1>
+
+<div class="topbar">
+  <div class="onair" id="onair" onclick="toggleOnAir()"><span class="dot"></span><span id="onairTxt">OFF AIR</span></div>
+  <div class="urlbox">
+    <input type="text" id="streamUrl" placeholder="Pega tu URL de stream Zeno/Icecast (ej. https://...zeno.fm/...)" value="https://radiovirtualjireh.vercel.app/">
+    <button onclick="openStream()">🔊 Verificar en vivo</button>
+  </div>
+</div>
+
+<div class="pipeline">
+  Cadena de aire: <b>Consola</b> <span>→</span> <b>Cable Virtual</b> <span>→</span> <b>BUTT / Zeno Source</b> <span>→</span> <b>Icecast</b> <span>→</span> <b>Radio Virtual Jireh</b>
+</div>
+
+<div class="console">
+  <div class="deck a">
+    <div class="deck-title">DECK A</div>
+    <canvas class="viz" id="vizA"></canvas>
+    <div class="file-wrap"><button class="btn">📁 Cargar MP3</button><input type="file" id="fileA" accept="audio/*" onchange="loadTrack('A',this)"></div>
+    <div class="track-info" id="infoA">Sin pista</div>
+    <div class="prog"><div class="prog-fill" id="progA"></div></div>
+    <button class="btn play" id="playA" onclick="togglePlay('A')">▶ PLAY</button>
+    <div class="grp"><label>Volumen A</label><input type="range" id="volA" min="0" max="1" step="0.01" value="1" oninput="updateMix()"></div>
+  </div>
+  <div class="mixer">
+    <label>CROSSFADER</label>
+    <div class="cf-ticks"><span>A</span><span>●</span><span>B</span></div>
+    <input type="range" id="crossfader" min="0" max="100" value="50" oninput="updateMix()">
+  </div>
+  <div class="deck b">
+    <div class="deck-title">DECK B</div>
+    <canvas class="viz" id="vizB"></canvas>
+    <div class="file-wrap"><button class="btn">📁 Cargar MP3</button><input type="file" id="fileB" accept="audio/*" onchange="loadTrack('B',this)"></div>
+    <div class="track-info" id="infoB">Sin pista</div>
+    <div class="prog"><div class="prog-fill" id="progB"></div></div>
+    <button class="btn play" id="playB" onclick="togglePlay('B')">▶ PLAY</button>
+    <div class="grp"><label>Volumen B</label><input type="range" id="volB" min="0" max="1" step="0.01" value="1" oninput="updateMix()"></div>
+  </div>
+</div>
+
+<canvas class="master-wave" id="vizMaster"></canvas>
+<div class="legend"><span><i style="background:var(--a)"></i>Bajos</span><span><i style="background:var(--voz)"></i>Voz</span><span><i style="background:var(--b)"></i>Agudos</span></div>
+
+<div class="recbar">
+  <button class="rec" id="recBtn" onclick="toggleRec()">⏺ GRABAR MEZCLA</button>
+  <a class="dl hidden" id="dlLink" download="mezcla_jireh.webm">⬇ Descargar mezcla</a>
+</div>
+
+<div class="badge">Ecosistema <a href="https://radiovirtualjireh.vercel.app/" target="_blank">Radio Virtual Jireh</a> · Hecho con Qwen</div>
+
+<audio id="audioA" crossorigin="anonymous"></audio>
+<audio id="audioB" crossorigin="anonymous"></audio>
+
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});}
+let ctx,srcA,srcB,gA,gB,master,anA,anB,anM,msDest,recorder,chunks=[],isInit=false,onAir=false;
+function initAudio(){
+  if(isInit)return;
+  const AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();
+  master=ctx.createGain();master.gain.value=1;
+  gA=ctx.createGain();gB=ctx.createGain();
+  anA=ctx.createAnalyser();anA.fftSize=256;
+  anB=ctx.createAnalyser();anB.fftSize=256;
+  anM=ctx.createAnalyser();anM.fftSize=2048;
+  msDest=ctx.createMediaStreamDestination();
+  const eA=document.getElementById('audioA'),eB=document.getElementById('audioB');
+  srcA=ctx.createMediaElementSource(eA);srcB=ctx.createMediaElementSource(eB);
+  srcA.connect(gA);srcB.connect(gB);
+  gA.connect(master);gB.connect(master);
+  gA.connect(anA);gB.connect(anB);          // ramas de análisis por deck
+  master.connect(anM);master.connect(ctx.destination);master.connect(msDest);
+  document.getElementById('overlay').style.display='none';
+  isInit=true;updateMix();requestAnimationFrame(draw);
+}
+function loadTrack(d,inp){
+  const f=inp.files[0];if(!f)return;
+  const a=document.getElementById('audio'+d),info=document.getElementById('info'+d),pr=document.getElementById('prog'+d),bt=document.getElementById('play'+d);
+  a.src=URL.createObjectURL(f);info.textContent=f.name.slice(0,24)+(f.name.length>24?'…':'');
+  bt.textContent='▶ PLAY';bt.classList.remove('playing');pr.style.width='0%';
+  a.ontimeupdate=()=>{if(a.duration)pr.style.width=(a.currentTime/a.duration*100)+'%';};
+  a.onended=()=>{bt.textContent='▶ PLAY';bt.classList.remove('playing');pr.style.width='0%';};
+}
+function togglePlay(d){
+  if(!isInit)return;const a=document.getElementById('audio'+d),bt=document.getElementById('play'+d);
+  if(a.paused){if(ctx.state==='suspended')ctx.resume();a.play();bt.textContent='⏸ PAUSE';bt.classList.add('playing');}
+  else{a.pause();bt.textContent='▶ PLAY';bt.classList.remove('playing');}
+}
+function updateMix(){
+  if(!isInit)return;
+  const cf=+document.getElementById('crossfader').value,vA=+document.getElementById('volA').value,vB=+document.getElementById('volB').value;
+  let cA,cB;if(cf<=50){cA=1;cB=cf/50;}else{cA=(100-cf)/50;cB=1;}
+  gA.gain.value=vA*cA;gB.gain.value=vB*cB;
+}
+/* ---------- VISUALIZADOR ---------- */
+function sizeCanvas(c){const r=c.getBoundingClientRect();if(c.width!==Math.round(r.width)||c.height!==Math.round(r.height)){c.width=r.width;c.height=r.height;}return c.getContext('2d');}
+function drawBars(id,an,color){
+  const c=document.getElementById(id);const g=sizeCanvas(c);const bins=an.frequencyBinCount;const data=new Uint8Array(bins);an.getByteFrequencyData(data);
+  g.clearRect(0,0,c.width,c.height);
+  const grad=g.createLinearGradient(0,0,c.width,0);grad.addColorStop(0,'#00f2ff');grad.addColorStop(.5,'#b14bff');grad.addColorStop(1,'#ff9d00');
+  const bars=40,step=Math.floor(bins/bars),bw=c.width/bars;
+  for(let i=0;i<bars;i++){let sum=0;for(let j=0;j<step;j++)sum+=data[i*step+j];const v=sum/step/255;const h=Math.max(2,v*c.height);g.fillStyle=grad;g.globalAlpha=.85;g.fillRect(i*bw+1,c.height-h,bw-2,h);}
+  g.globalAlpha=1;
+}
+function drawMaster(){
+  const c=document.getElementById('vizMaster');const g=sizeCanvas(c);const bins=anM.fftSize;const d=new Uint8Array(bins);anM.getByteTimeDomainData(d);
+  g.clearRect(0,0,c.width,c.height);g.lineWidth=2;g.strokeStyle='#fff';g.shadowColor='#00f2ff';g.shadowBlur=8;g.beginPath();
+  const slice=c.width/bins;for(let i=0;i<bins;i++){const v=d[i]/128,y=v*c.height/2;i?g.lineTo(i*slice,y):g.moveTo(0,y);}g.stroke();g.shadowBlur=0;
+}
+function draw(){if(!isInit)return;drawBars('vizA',anA);drawBars('vizB',anB);drawMaster();requestAnimationFrame(draw);}
+/* ---------- ON AIR / STREAM ---------- */
+function toggleOnAir(){onAir=!onAir;const el=document.getElementById('onair');el.classList.toggle('live',onAir);document.getElementById('onairTxt').textContent=onAir?'AL AIRE · ON AIR':'OFF AIR';}
+function openStream(){const u=document.getElementById('streamUrl').value.trim();if(u)window.open(u,'_blank');}
+/* ---------- GRABAR MEZCLA ---------- */
+function toggleRec(){
+  if(!isInit){alert('Inicia el audio primero');return;}
+  const btn=document.getElementById('recBtn'),dl=document.getElementById('dlLink');
+  if(!recorder){
+    chunks=[];try{recorder=new MediaRecorder(msDest.stream,{mimeType:'audio/webm;codecs=opus'});}catch(e){recorder=new MediaRecorder(msDest.stream);}
+    recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+    recorder.onstop=()=>{const blob=new Blob(chunks,{type:'audio/webm'});dl.href=URL.createObjectURL(blob);dl.classList.remove('hidden');};
+    recorder.start();btn.textContent='⏹ DETENER';btn.classList.add('on');dl.classList.add('hidden');
+  }else{recorder.stop();recorder=null;btn.textContent='⏺ GRABAR MEZCLA';btn.classList.remove('on');}
+}
+</script>
+</body>
+</html>

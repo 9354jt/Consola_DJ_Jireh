@@ -1,0 +1,1 @@
+const CACHE_NAME = 'dj-jireh-v2';   // <-- antes era v1, ahora v2
